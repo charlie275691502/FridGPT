@@ -7,11 +7,12 @@ import {
   ActivityIndicator,
   ScrollView,
   StyleSheet,
+  FlatList,
 } from "react-native";
 import Recipes, { Recipe } from "./Recipes";
 
 const API_KEY =
-  "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";
+  "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";
 
 export default function Input() {
   const [ingredients, setIngredients] = useState(
@@ -116,9 +117,12 @@ export default function Input() {
           style={styles.loading}
         />
       ) : (
-        <ScrollView style={styles.responseContainer}>
-          <Recipes recipes={recipes} />
-        </ScrollView>
+        <FlatList
+          data={recipes}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => <Recipes recipes={[item]} />}
+          contentContainerStyle={styles.responseContainer}
+        />
       )}
     </View>
   );
