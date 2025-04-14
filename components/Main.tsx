@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { CVImage, InferenceEngine } from "inferencejs";
 import {
   View,
   Text,
@@ -8,7 +9,10 @@ import {
   ScrollView,
   StyleSheet,
   FlatList,
+  Image,
 } from "react-native";
+// import image from "../assets/images/test.jpg";
+const image = require("../assets/images/test.jpg");
 import Recipes, { Recipe } from "./Recipes";
 
 const API_KEY =
@@ -20,6 +24,46 @@ export default function Input() {
   );
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(false);
+  const [workerId, setWorkerId] = useState<string>("");
+
+  const load_model = async () => {
+    try {
+      const inferEngine = new InferenceEngine();
+      if (inferEngine) {
+        const id = await inferEngine.startWorker(
+          "elda",
+          1,
+          "rf_LBPXLE4d5ZZWqx1Ejd9VUOCT1cC2"
+        );
+        console.log("Worker started with ID:", id);
+        setWorkerId(id);
+
+        const imgElement = document.createElement("img");
+        imgElement.src = image.uri;
+
+        let finish = false;
+        imgElement.onload = () => {
+          finish = true;
+        };
+        imgElement.onerror = (error) => {
+          console.error("Error loading image:", error);
+        };
+        while (!finish) {
+          await new Promise((resolve) => setTimeout(resolve, 100)); // wait for image to load
+        }
+
+        const cvimg = new CVImage(imgElement);
+        const predictions = await inferEngine.infer(id, cvimg); // infer on image
+        console.log(predictions); // log predictions
+      }
+    } catch (error) {
+      console.error("Error loading model:", error);
+    }
+  };
+
+  useEffect(() => {
+    load_model();
+  }, []);
 
   const sendToGenAI = async () => {
     if (!ingredients.trim()) return;
@@ -27,6 +71,7 @@ export default function Input() {
     setLoading(true);
 
     try {
+      return;
       const result = await fetch(
         "https://openrouter.ai/api/v1/chat/completions",
         {
@@ -98,6 +143,7 @@ export default function Input() {
 
   return (
     <View style={styles.container}>
+      <Image source={image} style={{ width: 200, height: 200 }} />
       <Text style={styles.heading}>FridGPT</Text>
 
       <TextInput
