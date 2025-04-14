@@ -1,18 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { CVImage, InferenceEngine } from "inferencejs";
+// import { CVImage, InferenceEngine } from "inferencejs";
 import {
   View,
   Text,
   TextInput,
   Button,
   ActivityIndicator,
-  ScrollView,
-  StyleSheet,
   FlatList,
   Image,
+  StyleSheet,
 } from "react-native";
-// import image from "../assets/images/test.jpg";
-const image = require("../assets/images/test.jpg");
+import * as ImagePicker from "expo-image-picker"; // Import the image picker
 import Recipes, { Recipe } from "./Recipes";
 
 const API_KEY =
@@ -25,45 +23,69 @@ export default function Input() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(false);
   const [workerId, setWorkerId] = useState<string>("");
+  const [selectedImage, setSelectedImage] = useState<string>(""); // State for the selected image
 
-  const load_model = async () => {
-    try {
-      const inferEngine = new InferenceEngine();
-      if (inferEngine) {
-        const id = await inferEngine.startWorker(
-          "elda",
-          1,
-          "rf_LBPXLE4d5ZZWqx1Ejd9VUOCT1cC2"
-        );
-        console.log("Worker started with ID:", id);
-        setWorkerId(id);
+  const handleImageUpload = async () => {
+    // Request permission to access the media library
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-        const imgElement = document.createElement("img");
-        imgElement.src = image.uri;
+    if (!permissionResult.granted) {
+      alert("Permission to access the gallery is required!");
+      return;
+    }
 
-        let finish = false;
-        imgElement.onload = () => {
-          finish = true;
-        };
-        imgElement.onerror = (error) => {
-          console.error("Error loading image:", error);
-        };
-        while (!finish) {
-          await new Promise((resolve) => setTimeout(resolve, 100)); // wait for image to load
-        }
+    // Launch the image picker
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+    });
 
-        const cvimg = new CVImage(imgElement);
-        const predictions = await inferEngine.infer(id, cvimg); // infer on image
-        console.log(predictions); // log predictions
-      }
-    } catch (error) {
-      console.error("Error loading model:", error);
+    if (!result.canceled) {
+      setSelectedImage(result.assets[0].uri); // Set the selected image URI
+      console.log("Selected image URI:", result.assets[0].uri);
+    } else {
+      console.log("Image selection canceled.");
     }
   };
 
+  const load_model = async () => {
+    // try {
+    //   const inferEngine = new InferenceEngine();
+    //   if (inferEngine && selectedImage) {
+    //     const id = await inferEngine.startWorker(
+    //       "elda",
+    //       1,
+    //       "rf_LBPXLE4d5ZZWqx1Ejd9VUOCT1cC2"
+    //     );
+    //     console.log("Worker started with ID:", id);
+    //     setWorkerId(id);
+    //     const imgElement = document.createElement("img");
+    //     imgElement.src = selectedImage; // Use the selected image URI
+    //     let finish = false;
+    //     imgElement.onload = () => {
+    //       finish = true;
+    //     };
+    //     imgElement.onerror = (error) => {
+    //       console.error("Error loading image:", error);
+    //     };
+    //     while (!finish) {
+    //       await new Promise((resolve) => setTimeout(resolve, 100)); // wait for image to load
+    //     }
+    //     const cvimg = new CVImage(imgElement);
+    //     const predictions = await inferEngine.infer(id, cvimg); // infer on image
+    //     console.log(predictions); // log predictions
+    //   }
+    // } catch (error) {
+    //   console.error("Error loading model:", error);
+    // }
+  };
+
   useEffect(() => {
-    load_model();
-  }, []);
+    // if (selectedImage) {
+    //   load_model();
+    // }
+  }, [selectedImage]);
 
   const sendToGenAI = async () => {
     if (!ingredients.trim()) return;
@@ -71,7 +93,6 @@ export default function Input() {
     setLoading(true);
 
     try {
-      return;
       const result = await fetch(
         "https://openrouter.ai/api/v1/chat/completions",
         {
@@ -143,8 +164,18 @@ export default function Input() {
 
   return (
     <View style={styles.container}>
-      <Image source={image} style={{ width: 200, height: 200 }} />
       <Text style={styles.heading}>FridGPT</Text>
+
+      {selectedImage ? (
+        <Image
+          source={{ uri: selectedImage }}
+          style={{ width: 200, height: 200 }}
+        />
+      ) : (
+        <Text>No image selected</Text>
+      )}
+
+      <Button title="Upload Image" onPress={handleImageUpload} />
 
       <TextInput
         style={styles.input}
@@ -154,7 +185,7 @@ export default function Input() {
         multiline
       />
 
-      <Button title="Submit" onPress={sendToGenAI} />
+      <Button title="Submit" onPress={load_model} />
 
       {loading ? (
         <ActivityIndicator
