@@ -25,12 +25,31 @@ export default function Input() {
   const [workerId, setWorkerId] = useState<string>("");
   const [selectedImage, setSelectedImage] = useState<string>(""); // State for the selected image
 
+  const handleCameraUpload = async () => {
+    // Request permission to access the camera
+    const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!cameraPermission.granted) {
+      alert("Permission to access the camera is required!");
+      return;
+    }
+    // Launch the camera
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setSelectedImage(result.assets[0].uri); // Set the captured image URI
+      console.log("Captured image URI:", result.assets[0].uri);
+    } else {
+      console.log("Camera action canceled.");
+    }
+  };
   const handleImageUpload = async () => {
     // Request permission to access the media library
-    const permissionResult =
+    const galleryPermission =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (!permissionResult.granted) {
+    if (!galleryPermission.granted) {
       alert("Permission to access the gallery is required!");
       return;
     }
@@ -175,6 +194,7 @@ export default function Input() {
         <Text>No image selected</Text>
       )}
 
+      <Button title="Camera" onPress={handleCameraUpload} />
       <Button title="Upload Image" onPress={handleImageUpload} />
 
       <TextInput
