@@ -1,7 +1,5 @@
+ultralytics
 streamlit
 torch
 Pillow
 opencv-python-headless
-numpy
-matplotlib
-ultralytics
