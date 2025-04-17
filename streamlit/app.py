@@ -6,9 +6,9 @@ import numpy as np
 
 # Add yolov5 directory to path
 sys.path.append('yolov5')
-from models.common import DetectMultiBackend
-from utils.general import non_max_suppression, scale_coords
-from utils.augmentations import letterbox
+from yolov5.models.common import DetectMultiBackend
+from yolov5.utils.general import non_max_suppression, scale_coords
+from yolov5.utils.augmentations import letterbox
 
 # Load model
 @st.cache_resource
