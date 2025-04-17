@@ -4,7 +4,7 @@ import os
 from ultralytics import YOLO
 
 def load_model():
-    model_path = os.path.join(os.path.dirname(__file__), "best.pt")  # Use Unix-style slashes
+    model_path = os.path.join(os.path.dirname(__file__), "./models/best.pt")  # Use Unix-style slashes
     print(f"Loading model from: {model_path}")  # Debugging line to check path
     return YOLO(model_path)
 
