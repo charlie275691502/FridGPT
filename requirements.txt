@@ -1,0 +1,6 @@
+ultralytics
+streamlit
+torch
+Pillow
+opencv-contrib-python-headless
+yolov5
