@@ -1,10 +1,6 @@
-import os
 import streamlit as st
 from PIL import Image
 from ultralytics import YOLO
-
-dir = os.path.Path(__file__).abspath()
-os.path.append(dir.parent)
 
 @st.cache_resource
 def load_model():
