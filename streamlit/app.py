@@ -4,7 +4,7 @@ from ultralytics import YOLO
 
 @st.cache_resource
 def load_model():
-    return YOLO("./best.pt")  # Make sure best.pt is in the same folder
+    return YOLO(".\\best.pt")  # Make sure best.pt is in the same folder
 
 model = load_model()
 
