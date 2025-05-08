@@ -14,7 +14,7 @@ import * as ImagePicker from "expo-image-picker"; // Import the image picker
 import Recipes, { Recipe } from "./Recipes";
 
 const API_KEY =
-  "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";
+  "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";
 
 export default function Input() {
   const [ingredients, setIngredients] = useState(
@@ -41,6 +41,7 @@ export default function Input() {
     if (!result.canceled) {
       setSelectedImage(result.assets[0].uri); // Set the captured image URI
       console.log("Captured image URI:", result.assets[0].uri);
+      uploadImage(result.assets[0].uri);
     } else {
       console.log("Camera action canceled.");
     }
@@ -63,48 +64,40 @@ export default function Input() {
     if (!result.canceled) {
       setSelectedImage(result.assets[0].uri); // Set the selected image URI
       console.log("Selected image URI:", result.assets[0].uri);
+      uploadImage(result.assets[0].uri);
     } else {
       console.log("Image selection canceled.");
     }
   };
 
-  const load_model = async () => {
-    // try {
-    //   const inferEngine = new InferenceEngine();
-    //   if (inferEngine && selectedImage) {
-    //     const id = await inferEngine.startWorker(
-    //       "elda",
-    //       1,
-    //       "rf_LBPXLE4d5ZZWqx1Ejd9VUOCT1cC2"
-    //     );
-    //     console.log("Worker started with ID:", id);
-    //     setWorkerId(id);
-    //     const imgElement = document.createElement("img");
-    //     imgElement.src = selectedImage; // Use the selected image URI
-    //     let finish = false;
-    //     imgElement.onload = () => {
-    //       finish = true;
-    //     };
-    //     imgElement.onerror = (error) => {
-    //       console.error("Error loading image:", error);
-    //     };
-    //     while (!finish) {
-    //       await new Promise((resolve) => setTimeout(resolve, 100)); // wait for image to load
-    //     }
-    //     const cvimg = new CVImage(imgElement);
-    //     const predictions = await inferEngine.infer(id, cvimg); // infer on image
-    //     console.log(predictions); // log predictions
-    //   }
-    // } catch (error) {
-    //   console.error("Error loading model:", error);
-    // }
-  };
+  const uploadImage = async (imageFile: string) => {
+    const formData = new FormData();
+    formData.append("image", {
+      uri: imageFile,
+      name: "Test.PNG",
+      type: "image/png",
+    } as any);
 
-  useEffect(() => {
-    // if (selectedImage) {
-    //   load_model();
-    // }
-  }, [selectedImage]);
+    try {
+      const response = await fetch("http://192.168.18.2:5010/detect", {
+        method: "POST",
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        body: formData,
+      });
+
+      // const result = await response.text(); // or .text() if it's not JSON
+      const result = await response.json();
+      const ingredientNames = result
+        .map((item: { name: any }) => item.name)
+        .join(", ");
+      console.log("Detection result:", ingredientNames);
+      setIngredients(ingredientNames);
+    } catch (error) {
+      console.error("Upload error:", error);
+    }
+  };
 
   const sendToGenAI = async () => {
     if (!ingredients.trim()) return;
@@ -185,27 +178,30 @@ export default function Input() {
     <View style={styles.container}>
       <Text style={styles.heading}>FridGPT</Text>
 
-      {selectedImage ? (
+      {selectedImage && recipes.length == 0 ? (
         <Image
           source={{ uri: selectedImage }}
           style={{ width: 200, height: 200 }}
         />
-      ) : (
+      ) : recipes.length == 0 ? (
         <Text>No image selected</Text>
+      ) : null}
+      {recipes.length == 0 && (
+        <>
+          <Button title="Camera" onPress={handleCameraUpload} />
+          <Button title="Upload Image" onPress={handleImageUpload} />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Type your prompt here"
+            value={ingredients}
+            onChangeText={setIngredients}
+            multiline
+          />
+
+          <Button title="Submit" onPress={sendToGenAI} />
+        </>
       )}
-
-      <Button title="Camera" onPress={handleCameraUpload} />
-      <Button title="Upload Image" onPress={handleImageUpload} />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Type your prompt here"
-        value={ingredients}
-        onChangeText={setIngredients}
-        multiline
-      />
-
-      <Button title="Submit" onPress={load_model} />
 
       {loading ? (
         <ActivityIndicator
