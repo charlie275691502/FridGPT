@@ -27,10 +27,15 @@ def detect():
     img = Image.open(io.BytesIO(img_bytes))
 
     # Perform detection
-    results = model(img)
-    detections = results.pandas().xyxy[0].to_dict(orient="records")
+    results = model.predict(img)
+    
+    # res_plotted = results.render()[0]
 
-    return jsonify(detections)
+    df_results = results.pandas().xyxy[0]
+    simplified_results = df_results[["name", "confidence"]].to_dict(orient="records")
+
+    return simplified_results
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5010, debug=True)
+
