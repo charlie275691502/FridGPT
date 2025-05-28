@@ -4,9 +4,11 @@ from PIL import Image
 import io
 from yolov5 import YOLOv5
 import os
+import pathlib
 
 app = Flask(__name__)
 
+pathlib.PosixPath = pathlib.WindowsPath
 
 def load_model():
     # model_path = os.path.join(os.path.dirname(__file__), "best.pt")

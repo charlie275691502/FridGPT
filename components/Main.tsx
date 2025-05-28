@@ -14,7 +14,7 @@ import * as ImagePicker from "expo-image-picker"; // Import the image picker
 import Recipes, { Recipe } from "./Recipes";
 
 const API_KEY =
-  "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";
+  "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";
 
 export default function Input() {
   const [ingredients, setIngredients] = useState(
@@ -22,7 +22,6 @@ export default function Input() {
   );
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(false);
-  const [workerId, setWorkerId] = useState<string>("");
   const [selectedImage, setSelectedImage] = useState<string>(""); // State for the selected image
 
   const handleCameraUpload = async () => {
@@ -79,7 +78,7 @@ export default function Input() {
     } as any);
 
     try {
-      const response = await fetch("http://192.168.18.2:5010/detect", {
+      const response = await fetch("http://192.168.129.120:5010/detect", {
         method: "POST",
         headers: {
           "Content-Type": "multipart/form-data",
@@ -190,7 +189,11 @@ export default function Input() {
         <>
           <Button title="Camera" onPress={handleCameraUpload} />
           <Button title="Upload Image" onPress={handleImageUpload} />
+        </>
+      )}
 
+      {recipes.length == 0 && selectedImage && (
+        <>
           <TextInput
             style={styles.input}
             placeholder="Type your prompt here"
